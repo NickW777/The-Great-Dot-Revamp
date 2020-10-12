@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="The Great Dot Revamp:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/The_Great_Dot_Revamp_jar</output-path>
+    <root id="archive" name="The Great Dot Revamp.jar">
+      <element id="module-output" name="The Great Dot Revamp" />
+    </root>
+  </artifact>
+</component>
