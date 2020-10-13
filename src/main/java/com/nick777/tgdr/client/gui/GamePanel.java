@@ -10,12 +10,14 @@ import java.awt.*;
 public class GamePanel extends JPanel {
 
     Tank player = new Tank();
+    Tank enemy = new Tank();
     Grid grid = new Grid();
     GameElements.Window window = new GameElements.Window();
 
-    public void setPlayer(Tank updatedPlayer) { player = updatedPlayer; }
-    public void setGrid(Grid updatedGrid) { grid = updatedGrid; }
-    public void setWindow(GameElements.Window updatedWindow) { window = updatedWindow; }
+    public void setPlayer(Tank player) { this.player = player; }
+    public void setGrid(Grid grid) { this.grid = grid; }
+    public void setWindow(GameElements.Window window) { this.window = window; }
+    public void setEnemy(Tank enemy) { this.enemy = enemy; }
 
     @Override
     public void paintComponent(Graphics g) {
@@ -40,8 +42,14 @@ public class GamePanel extends JPanel {
         g.setColor(Color.gray);
         g.fillPolygon(player.barrel.coords.xArray, player.barrel.coords.yArray, 4);
 
+        g.fillPolygon(enemy.barrel.coords.xArray, enemy.barrel.coords.yArray, 4);
+
         //Draw Player Body
         g.setColor(new Color(0, 176, 225));
         g.fillOval(TheGreatDotRevamp.SCREENWIDTH / 2 - player.radius,TheGreatDotRevamp.SCREENHEIGHT / 2 - player.radius,player.radius * 2,player.radius * 2);
+
+        g.fillOval((int) enemy.coords.x - (int) window.tl.x - enemy.radius, (int) enemy.coords.y - (int) window.tl.y - enemy.radius, enemy.radius * 2, enemy.radius * 2);
+
+
     }
 }

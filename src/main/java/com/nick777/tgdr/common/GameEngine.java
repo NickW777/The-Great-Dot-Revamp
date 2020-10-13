@@ -15,7 +15,9 @@ import static java.lang.Math.*;
 import static com.nick777.tgdr.client.gui.GameScreen.gamePaused;
 
 public class GameEngine {
-    private static Tank player = new Tank();
+    private static final Tank player = new Tank();
+    private static final Tank enemy = new Tank();
+
     private static final GameElements.Window window = new GameElements.Window();
     private static final GameElements.Window map = new GameElements.Window();
     private static final Grid grid = new Grid();
@@ -93,6 +95,9 @@ public class GameEngine {
                     mouse.x = MouseInfo.getPointerInfo().getLocation().x;
                     mouse.y = MouseInfo.getPointerInfo().getLocation().y;
 
+                //Update Window Location
+                window.updateWindow(player.coords, screenCenter,TheGreatDotRevamp.SCREENWIDTH,TheGreatDotRevamp.SCREENHEIGHT);
+
                 //Update Server Side
                     //Update Player
                     player.coords.y += movementState.yDirection;
@@ -101,27 +106,47 @@ public class GameEngine {
                     player.radius = 40;
                     player.barrel.length = 70;
                     player.barrel.width = 40;
-                    player.barrel.coords = getBarrelCoords(player);
+                    player.barrel.coords = player.getBarrelCoords(screenCenter, true, window);
+                    player.totalReloadTime = 60;
+                    player.timeSinceLastShot++;
+
+                    //Update Enemy
+                    enemy.ai.currentDec = enemy.ai.makeDecision();
+                    enemy.coords.x += enemy.ai.currentDec.vel.x;
+                    enemy.coords.y += enemy.ai.currentDec.vel.y;
+                    enemy.barrel.angle = 0;
+                    enemy.radius = 40;
+                    enemy.barrel.length = 70;
+                    enemy.barrel.width = 40;
+                    enemy.barrel.coords = enemy.getBarrelCoords(enemy.coords, false, window);
 
                     //Add new bullets
-                    if (mouseState.LeftButtonPressed) {
+                    if (mouseState.LeftButtonPressed && player.timeSinceLastShot >= player.totalReloadTime) {
                         newBullet = new Bullet();
                         newBullet.coords.x = player.barrel.length * cos(player.barrel.angle) + player.coords.x;
                         newBullet.coords.y = player.barrel.length * sin(player.barrel.angle) + player.coords.y;
-                        newBullet.vel.x = cos(player.barrel.angle);
-                        newBullet.vel.y = sin(player.barrel.angle);
+                        newBullet.speed = 4;
+                        newBullet.vel.x = cos(player.barrel.angle) * newBullet.speed;
+                        newBullet.vel.y = sin(player.barrel.angle) * newBullet.speed;
                         newBullet.radius = 15;
-                        player.bullets = player.addBullet(newBullet);
+                        newBullet.totalLifetime = 180;
+                        newBullet.lifeSpent = 0;
+                        player.addBullet(newBullet);
+                        player.timeSinceLastShot = 0;
                     }
 
                     //Update Current Bullets
                     for(int i = 0; i < player.bullets.length; i++) {
+                        player.bullets[i].lifeSpent++;
+                        if(player.bullets[i].lifeSpent == player.bullets[i].totalLifetime) {
+                            player.removeBullet(i);
+                            continue;
+                        }
                         player.bullets[i].coords.x += player.bullets[i].vel.x;
                         player.bullets[i].coords.y += player.bullets[i].vel.y;
                     }
 
-                    //Update Window Location
-                    window.updateWindow(player.coords, screenCenter,TheGreatDotRevamp.SCREENWIDTH,TheGreatDotRevamp.SCREENHEIGHT);
+
 
                     //Update Background Grid
                     double startX = -(window.tl.x % 20);
@@ -145,6 +170,7 @@ public class GameEngine {
                     gamePanel.setPlayer(player);
                     gamePanel.setGrid(grid);
                     gamePanel.setWindow(window);
+                    gamePanel.setEnemy(enemy);
 
                 //Update Frame
                     gamePanel.repaint();
@@ -209,40 +235,7 @@ public class GameEngine {
 
     }
 
-    public static CoordinateList getBarrelCoords(Tank tank) {
-        int halfBarrel = tank.barrel.width / 2;
-        double modAngle = tank.barrel.angle + PI / 2;
 
-        Coordinates endCenter = new Coordinates();
-        endCenter.x = tank.barrel.length * cos(tank.barrel.angle);
-        endCenter.y = tank.barrel.length * sin(tank.barrel.angle);
-
-        CoordinateList barrelCoords = new CoordinateList();
-        //All corners are described as if the barrel were pointing upwards on the screen
-
-        //Bottom Left Corner
-        barrelCoords.xArray[0] = (int) (halfBarrel * cos(modAngle));
-        barrelCoords.yArray[0] = (int) (halfBarrel * sin(modAngle));
-
-        //Bottom Right Corner
-        barrelCoords.xArray[1] = -(barrelCoords.xArray[0]);
-        barrelCoords.yArray[1] = -barrelCoords.yArray[0];
-
-        //Top Right Corner
-        barrelCoords.xArray[2] = (int) endCenter.x + barrelCoords.xArray[1];
-        barrelCoords.yArray[2] = (int) endCenter.y + barrelCoords.yArray[1];
-
-        //Top Left Corner
-        barrelCoords.xArray[3] = (int) endCenter.x + barrelCoords.xArray[0];
-        barrelCoords.yArray[3] = (int) endCenter.y + barrelCoords.yArray[0];
-
-        for (int i = 0; i < 4; i++) {
-            barrelCoords.xArray[i] += screenCenter.x;
-            barrelCoords.yArray[i] += screenCenter.y;
-        }
-
-        return barrelCoords;
-    }
 
     public static double getAngle(Coordinates origin, Coordinates testPoint) {
         return -atan2(testPoint.x - origin.x,testPoint.y - origin.y) + PI / 2;
