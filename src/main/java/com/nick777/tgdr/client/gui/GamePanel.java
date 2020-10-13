@@ -2,7 +2,8 @@ package com.nick777.tgdr.client.gui;
 
 import com.nick777.tgdr.TheGreatDotRevamp;
 import com.nick777.tgdr.common.GameElements;
-import com.nick777.tgdr.common.GameElements.*;
+import com.nick777.tgdr.common.GameElements.Grid;
+import com.nick777.tgdr.common.GameElements.Tank;
 
 import javax.swing.*;
 import java.awt.*;
@@ -10,14 +11,15 @@ import java.awt.*;
 public class GamePanel extends JPanel {
 
     Tank player = new Tank();
-    Tank enemy = new Tank();
+    Tank[] enemy = new Tank[0];
+
     Grid grid = new Grid();
     GameElements.Window window = new GameElements.Window();
 
     public void setPlayer(Tank player) { this.player = player; }
     public void setGrid(Grid grid) { this.grid = grid; }
     public void setWindow(GameElements.Window window) { this.window = window; }
-    public void setEnemy(Tank enemy) { this.enemy = enemy; }
+    public void setEnemy(Tank[] enemy) { this.enemy = enemy; }
 
     @Override
     public void paintComponent(Graphics g) {
@@ -41,14 +43,14 @@ public class GamePanel extends JPanel {
         //Draw Player Barrel
         g.setColor(Color.gray);
         g.fillPolygon(player.barrel.coords.xArray, player.barrel.coords.yArray, 4);
-
-        g.fillPolygon(enemy.barrel.coords.xArray, enemy.barrel.coords.yArray, 4);
+        for (int i = 0; i < enemy.length; i++)
+            g.fillPolygon(enemy[i].barrel.coords.xArray, enemy[i].barrel.coords.yArray, 4);
 
         //Draw Player Body
         g.setColor(new Color(0, 176, 225));
         g.fillOval(TheGreatDotRevamp.SCREENWIDTH / 2 - player.radius,TheGreatDotRevamp.SCREENHEIGHT / 2 - player.radius,player.radius * 2,player.radius * 2);
-
-        g.fillOval((int) enemy.coords.x - (int) window.tl.x - enemy.radius, (int) enemy.coords.y - (int) window.tl.y - enemy.radius, enemy.radius * 2, enemy.radius * 2);
+        for (int i = 0; i < enemy.length; i++)
+            g.fillOval((int) enemy[i].coords.x - (int) window.tl.x - enemy[i].radius, (int) enemy[i].coords.y - (int) window.tl.y - enemy[i].radius, enemy[i].radius * 2, enemy[i].radius * 2);
 
 
     }
